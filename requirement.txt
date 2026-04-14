@@ -1,0 +1,53 @@
+[cite_start]這份需求文件描述了一個 **Workflow Design 編輯器** 的基本功能與規格 [cite: 2]。以下是該文件的內容整理：
+
+---
+
+## 1. 介面概觀 (Interface Overview)
+[cite_start]編輯器主要由三個部分組成，最核心的是 **Canvas（畫布）** 區域，左側則有至少 6 個功能按鈕 [cite: 11]：
+
+* [cite_start]**Select (預設選取)**：用於選取、移動、調整物件大小或群組化 [cite: 12, 18]。
+* [cite_start]**Association**：建立關聯連結線 [cite: 13]。
+* [cite_start]**Generalization**：建立一般化連結線 [cite: 14]。
+* [cite_start]**Composition**：建立組合連結線 [cite: 15]。
+* [cite_start]**Rect**：創造矩形物件 [cite: 16]。
+* [cite_start]**Oval**：創造橢圓形物件 [cite: 17]。
+
+---
+
+## 2. 物件定義 (Definitions)
+* [cite_start]**基本物件 (Basic Object)**：包含矩形 (Rect) 與橢圓形 (Oval) [cite: 30]。
+* [cite_start]**連結物件 (Link)**：連接於基本物件的 **ports** 上，包含 Association、Generalization 與 Composition [cite: 31, 46]。
+* [cite_start]**群組物件 (Composite)**：由多個物件組合而成的樹狀容器，其範圍為包含所有組成物件的最小正方形區域 [cite: 32]。
+* [cite_start]**物件深度 (Depth)**：深度值為 0-99，數值越小代表在越上層。最後選取的物件應調整為最小深度值（最上層） [cite: 33]。
+
+---
+
+## 3. 使用案例規格 (Use Cases)
+
+### A. 建立物件 (Creating an Object)
+1.  [cite_start]在 Rect 或 Oval 按鈕上按住左鍵（按鈕變黑表示模式切換） [cite: 36, 37]。
+2.  [cite_start]拖曳至 Canvas 區域後放開左鍵 [cite: 39]。
+3.  [cite_start]在編輯區繪製出空白物件，並將模式按鈕顏色復原 [cite: 40, 41]。
+
+### B. 連結物件 (Creating a Link)
+* [cite_start]**規則**：必須從一個物件的 **port** 拖曳至另一個物件的 **port** [cite: 48, 50]。
+* [cite_start]**限制**：若起始或結束座標不在物件 port 上，或連結至同一物件，則不建立連結 [cite: 54, 56][cite_start]。此功能不適用於 Composite 物件 [cite: 57]。
+
+### C. 選取物件 (Select / Unselect)
+* [cite_start]**單一選取**：滑鼠移動至物件範圍時顯示 ports（或 Composite 外框），點選後該物件被選取，並取消其他物件的選取狀態 [cite: 66, 67, 68]。
+* [cite_start]**區域選取**：在空白處拖曳出四方形區域，完全落於該區域內的物件皆會被選取 [cite: 74, 78]。
+
+### D. 群組與解組 (Group / Ungroup)
+* [cite_start]**Group**：選取 2 個（含）以上物件後，透過 `Edit -> Group` 合併為一個 Composite 物件 [cite: 85, 86, 87]。
+* [cite_start]**Ungroup**：選取唯一一個 Composite 物件後，透過 `Edit -> Ungroup` 解構最外層 [cite: 89, 90, 91]。
+
+### E. 移動物件 (Move Objects)
+* [cite_start]在 Select 模式下，按住物件拖曳至新位置，所有連接至該物件的 links 必須重新繪製 [cite: 102, 103, 105, 106]。
+
+### F. 調整大小 (Resize Objects)
+* [cite_start]點選基本物件的任一 **port** 並拖曳來調整大小 [cite: 113, 114]。
+* [cite_start]**限制**：Composite 物件無法調整大小 [cite: 119][cite_start]。物件最小尺寸限制為 20x20 pixels [cite: 123][cite_start]。支持交叉反向拖曳（例如右下 port 越過左上角） [cite: 121]。
+
+### G. 自定義標籤樣式 (Customize Label Style)
+* [cite_start]選取基本物件後，透過 `Edit -> Label` 開啟彈跳視窗 [cite: 126, 128]。
+* [cite_start]可修改 **標籤名稱 (Name)** 與 **背景顏色 (Color)** [cite: 130, 131]。
