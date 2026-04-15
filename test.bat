@@ -1,5 +1,5 @@
 cd "c:\Users\User\Desktop\ooad_mid\src\"
 del /s /q *.class
 
-javac Main.java
-java Main
+@REM javac Main.java
+@REM java Main
