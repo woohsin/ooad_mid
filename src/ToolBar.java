@@ -1,19 +1,24 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ToolBar extends JToolBar {
     private List<JButton> buttons = new ArrayList<>();
+    private Map<String, Mode> modeMap = new HashMap<>();
     private JButton currentSelectedButton = null;
     private String currentMode = "Select";
 
     public ToolBar() {
-        setLayout(new GridLayout(6, 1, 5, 5));
-        setFloatable(false);
+        setLayout(new GridLayout(0, 1, 5, 5)); //n 列 1 欄（按鈕會垂直排列）元件之間的水平與垂直間距為 5 像素
+        setFloatable(false);//固定在視窗左側
 
-        String[] names = {"Select", "Association", "Generalization", "Composition", "Rect", "Oval"};
-        for (String name : names) {
+        initModeMap();
+
+        for (String name : modeMap.keySet()) {
             JButton btn = new JButton(name);
             buttons.add(btn);
             btn.setBackground(Color.WHITE);
@@ -34,6 +39,18 @@ public class ToolBar extends JToolBar {
         Canvas.getInstance().setToolBar(this);
     }
 
+    //任何增加的bottom改這裡就好
+    private void initModeMap() {
+        // 使用 LinkedHashMap 可以確保按鈕順序按照你 put 的順序排列
+        modeMap = new LinkedHashMap<>(); 
+        modeMap.put("Select", new SelectMode());
+        modeMap.put("Association", new ConnectionMode("Association"));
+        modeMap.put("Generalization", new ConnectionMode("Generalization"));
+        modeMap.put("Composition", new ConnectionMode("Composition"));
+        modeMap.put("Rect", new CreateObjectMode("Rect"));
+        modeMap.put("Oval", new CreateObjectMode("Oval"));
+    }
+
     private void resetButtons() {
         for (JButton b : buttons) {
             b.setBackground(Color.WHITE);
@@ -48,34 +65,23 @@ public class ToolBar extends JToolBar {
         currentSelectedButton = btn;
         currentMode = name;
         
-        if (name.equalsIgnoreCase("Select")) {
-            Canvas.getInstance().setMode(new SelectMode());
-        } else if (name.equalsIgnoreCase("Rect")) {
-            Canvas.getInstance().setMode(new CreateObjectMode("Rect"));
-        } else if (name.equalsIgnoreCase("Oval")) {
-            Canvas.getInstance().setMode(new CreateObjectMode("Oval"));
-        } else if (name.equalsIgnoreCase("Association")) {
-            Canvas.getInstance().setMode(new ConnectionMode("Association"));
-        } else if (name.equalsIgnoreCase("Generalization")) {
-            Canvas.getInstance().setMode(new ConnectionMode("Generalization"));
-        } else if (name.equalsIgnoreCase("Composition")) {
-            Canvas.getInstance().setMode(new ConnectionMode("Composition"));
+        Mode nextMode = modeMap.get(name);
+        if (nextMode != null) {
+            Canvas.getInstance().setMode(nextMode);
         }
     }
     
     public void restoreButtonState(String previousMode) {
         resetButtons();
         
-        // 找到對應的按鈕並設為選中狀態
-        for (int i = 0; i < buttons.size(); i++) {
-            String[] names = {"Select", "Association", "Generalization", "Composition", "Rect", "Oval"};
-            if (names[i].equalsIgnoreCase(previousMode)) {
-                JButton btn = buttons.get(i);
+        for (JButton btn : buttons) {
+            // 直接利用按鈕自帶的文字進行比對
+            if (btn.getText().equalsIgnoreCase(previousMode)) {
                 btn.setBackground(Color.BLACK);
                 btn.setForeground(Color.WHITE);
-                currentSelectedButton = btn;
-                currentMode = previousMode;
-                break;
+                this.currentSelectedButton = btn;
+                this.currentMode = previousMode;
+                break; 
             }
         }
     }
