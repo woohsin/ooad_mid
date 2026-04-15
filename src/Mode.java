@@ -9,14 +9,19 @@ public abstract class Mode {
 
 class CreateObjectMode extends Mode {
     private String type;
+    private Shape prototype;
     private int startX, startY;
     private int endX, endY;
     private boolean isDragging = false;
     
-    public CreateObjectMode(String t) { this.type = t; }
+    public CreateObjectMode(Shape shape) { 
+        this.prototype = shape; 
+    }
 
     @Override
-    public String getType() { return this.type; }
+    public String getType() {
+        return this.type; 
+    }
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -25,33 +30,24 @@ class CreateObjectMode extends Mode {
         endX = startX;
         endY = startY;
         isDragging = true;
-        Canvas.getInstance().setPreviewShape(type, startX, startY, endX, endY);
+        Canvas.getInstance().setPreviewShape(prototype.createInstance(startX, startY, startX, startY));
     }
     
     @Override
     public void mouseDragged(MouseEvent e) {
-        endX = e.getX();
-        endY = e.getY();
-        Canvas.getInstance().setPreviewShape(type, startX, startY, endX, endY);
+        // 更新預覽
+        Canvas.getInstance().setPreviewShape(prototype.createInstance(startX, startY, e.getX(), e.getY()));
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         if (isDragging) {
-            endX = e.getX();
-            endY = e.getY();
-            
-            // 建立最終的物件
-            if (type.equals("Rect")) {
-                Canvas.getInstance().addShape(new RectObject(startX, startY, endX, endY));
-            } else {
-                Canvas.getInstance().addShape(new OvalObject(startX, startY, endX, endY));
-            }
+            // 一行搞定！不需要 if-else，Canvas 也不用判斷 type
+            Shape finalShape = prototype.createInstance(startX, startY, e.getX(), e.getY());
+            Canvas.getInstance().addShape(finalShape);
             
             isDragging = false;
             Canvas.getInstance().clearPreviewShape();
-            
-            // 恢復到之前的模式
             Canvas.getInstance().restorePreviousMode();
         }
     }

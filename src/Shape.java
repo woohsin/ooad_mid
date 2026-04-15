@@ -13,6 +13,8 @@ public abstract class Shape {
     public abstract boolean isInside(int x, int y);
     public abstract List<Port> getAllPorts();
 
+    public abstract Shape createInstance(int x1, int y1, int x2, int y2);
+
     public boolean canResize() {
         return true;  // 基本物件可以調整大小
     }
@@ -159,6 +161,11 @@ class RectObject extends Shape {
         Rectangle b = getBounds();
         return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;
     }
+
+    @Override
+    public Shape createInstance(int x1, int y1, int x2, int y2) {
+        return new RectObject(x1, y1, x2, y2);
+    }
     
     @Override
     public List<Port> getAllPorts() {
@@ -207,6 +214,11 @@ class OvalObject extends Shape {
     public OvalObject(int x1, int y1, int x2, int y2) {
         this.x1 = x1; this.y1 = y1;
         this.x2 = x2; this.y2 = y2;
+    }
+
+    @Override
+    public Shape createInstance(int x1, int y1, int x2, int y2) {
+        return new OvalObject(x1, y1, x2, y2);
     }
 
     @Override

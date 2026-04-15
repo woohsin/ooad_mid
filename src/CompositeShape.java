@@ -27,6 +27,12 @@ public class CompositeShape extends Shape {
     }
 
     @Override
+    public Shape createInstance(int x1, int y1, int x2, int y2) {
+        // 因為 Composite 是由 Group 功能產生的，不會透過拖曳建立
+        return null; 
+    }
+
+    @Override
     public void draw(Graphics g) {
         for (Shape child : children) {
             child.draw(g);

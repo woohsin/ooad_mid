@@ -47,8 +47,8 @@ public class ToolBar extends JToolBar {
         modeMap.put("Association", new ConnectionMode("Association"));
         modeMap.put("Generalization", new ConnectionMode("Generalization"));
         modeMap.put("Composition", new ConnectionMode("Composition"));
-        modeMap.put("Rect", new CreateObjectMode("Rect"));
-        modeMap.put("Oval", new CreateObjectMode("Oval"));
+        modeMap.put("Rect", new CreateObjectMode(new RectObject(0,0,0,0)));
+        modeMap.put("Oval", new CreateObjectMode(new OvalObject(0,0,0,0)));
     }
 
     private void resetButtons() {

@@ -71,14 +71,10 @@ public class Canvas extends JPanel {
         }
     }
     
-    void setPreviewShape(String type, int x1, int y1, int x2, int y2) {
-        if (type.equals("Rect")) {
-            this.previewShape = new RectObject(x1, y1, x2, y2);
-        } else {
-            this.previewShape = new OvalObject(x1, y1, x2, y2);
-        }
+    void setPreviewShape(Shape s) {
+        this.previewShape = s;
     }
-    
+        
     void clearPreviewShape() {
         this.previewShape = null;
     }
