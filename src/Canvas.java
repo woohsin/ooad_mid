@@ -111,14 +111,14 @@ public class Canvas extends JPanel {
     void addLink(Link l) { links.add(l); }
     List<Shape> getShapes() { return shapes; }
     
-    public Shape getSelectedShape() {
+    public Shape getSelectedShape() {  //誰是selected
         for (Shape s : shapes) {
             if (s.isSelected) return s;
         }
         return null;
     }
 
-    public List<Shape> getSelectedShapes() {
+    public List<Shape> getSelectedShapes() {    //誰們是selected
         List<Shape> selected = new ArrayList<>();
         for (Shape s : shapes) {
             if (s.isSelected) {
@@ -128,7 +128,7 @@ public class Canvas extends JPanel {
         return selected;
     }
 
-    public void groupSelectedShapes() {
+    public void groupSelectedShapes() { //group+重畫
         List<Shape> selected = getSelectedShapes();
         if (selected.size() < 2) {
             return; // Alternatives D.1
@@ -140,7 +140,7 @@ public class Canvas extends JPanel {
         repaint();
     }
 
-    public void ungroupSelectedShape() {
+    public void ungroupSelectedShape() {    //ungroup+重畫
         List<Shape> selected = getSelectedShapes();
         if (selected.size() != 1 || !(selected.get(0) instanceof CompositeShape)) {
             return; // Alternatives D.2
@@ -158,17 +158,17 @@ public class Canvas extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         
+        // 繪製所有 shapes
+        for (Shape s : shapes) {
+            s.draw(g);
+        }
+
         // 繪製所有 links
         for (Link link : links) {
             link.draw(g);
         }
         
-        // 繪製所有 shapes
-        for (Shape s : shapes) {
-            s.draw(g);
-        }
-        
-        // 如果鼠標悬停在某個物件上，顯示其 ports（Use Case F - Case 2）
+        // 如果滑鼠停到，顯示其 ports
         if (hoveredShape != null) {
             hoveredShape.drawPorts(g);
         }
