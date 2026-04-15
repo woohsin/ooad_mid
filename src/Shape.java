@@ -5,18 +5,38 @@ import java.util.List;
 public abstract class Shape {
     protected int x1, y1, x2, y2;
     protected boolean isSelected = false;
-    protected static final int MIN_SIZE = 20;  // 最小尺寸限制
+    protected static final int MIN_SIZE = 22;  // 最小尺寸限制
     protected String labelName = "";  // 標籤名稱
     protected Color labelColor = new Color(211, 211, 211);
 
     public abstract void draw(Graphics g);
     public abstract boolean isInside(int x, int y);
-    public abstract Port getPortAt(int x, int y);  // 檢查是否在 port 範圍內
-    public abstract List<Port> getAllPorts();       // 取得所有 ports
-    public abstract boolean isCompletelyInside(int minX, int maxX, int minY, int maxY);  // 檢查是否完全在矩形區域內
-    public abstract boolean canResize();  // 是否可以調整大小（composite 物件返回 false）
+    public abstract List<Port> getAllPorts();
+
+    public boolean canResize() {
+        return true;  // 基本物件可以調整大小
+    }
+
+    public boolean isCompletelyInside(int minX, int maxX, int minY, int maxY) {
+        int x1 = Math.min(this.x1, this.x2);
+        int x2 = Math.max(this.x1, this.x2);
+        int y1 = Math.min(this.y1, this.y2);
+        int y2 = Math.max(this.y1, this.y2);
+        
+        return x1 >= minX && x2 <= maxX && y1 >= minY && y2 <= maxY;
+    }
+
+    public Port getPortAt(int px, int py) {
+        int tolerance = 8;  // port 的點擊範圍
+        for (Port port : getAllPorts()) {
+            if (Math.abs(port.getX() - px) <= tolerance && Math.abs(port.getY() - py) <= tolerance) {
+                return port;
+            }
+        }
+        return null;
+    }
     
-    // 获取边界矩形
+    // 邊界
     protected Rectangle getBounds() {
         int minX = Math.min(x1, x2);
         int minY = Math.min(y1, y2);
@@ -25,7 +45,7 @@ public abstract class Shape {
         return new Rectangle(minX, minY, width, height);
     }
     
-    // 绘制标签文本的辅助方法
+    // label str置中
     protected void drawLabelText(Graphics g, int minX, int minY, int width, int height) {
         if (!labelName.isEmpty()) {
             g.setColor(Color.BLACK);
@@ -83,7 +103,6 @@ public abstract class Shape {
     }
     
     public void drawPreview(Graphics g) {
-        // 預設預覽方式與正常繪製相同但可透明度較低
         Graphics2D g2d = (Graphics2D) g;
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
         draw(g2d);
@@ -133,16 +152,12 @@ class RectObject extends Shape {
         this.x1 = x1; this.y1 = y1;
         this.x2 = x2; this.y2 = y2;
     }
-    
+
     @Override
-    public Port getPortAt(int px, int py) {
-        int tolerance = 8;  // port 的點擊範圍
-        for (Port port : getAllPorts()) {
-            if (Math.abs(port.getX() - px) <= tolerance && Math.abs(port.getY() - py) <= tolerance) {
-                return port;
-            }
-        }
-        return null;
+    public boolean isInside(int x, int y) {
+        // 預設實作：檢查是否在矩形邊界內
+        Rectangle b = getBounds();
+        return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;
     }
     
     @Override
@@ -166,22 +181,6 @@ class RectObject extends Shape {
     }
     
     @Override
-    public boolean isCompletelyInside(int minX, int maxX, int minY, int maxY) {
-        int x1 = Math.min(this.x1, this.x2);
-        int x2 = Math.max(this.x1, this.x2);
-        int y1 = Math.min(this.y1, this.y2);
-        int y2 = Math.max(this.y1, this.y2);
-        
-        // 檢查矩形是否完全落在選擇區域內
-        return x1 >= minX && x2 <= maxX && y1 >= minY && y2 <= maxY;
-    }
-    
-    @Override
-    public boolean canResize() {
-        return true;  // 基本物件可以調整大小
-    }
-    
-    @Override
     public void draw(Graphics g) {
         Rectangle bounds = getBounds();
         
@@ -196,10 +195,6 @@ class RectObject extends Shape {
         
         if (isSelected) drawPorts(g);
     }
-    @Override
-    public boolean isInside(int px, int py) {
-        return px >= Math.min(x1, x2) && px <= Math.max(x1, x2) && py >= Math.min(y1, y2) && py <= Math.max(y1, y2);
-    }
 }
 
 class OvalObject extends Shape {
@@ -213,16 +208,27 @@ class OvalObject extends Shape {
         this.x1 = x1; this.y1 = y1;
         this.x2 = x2; this.y2 = y2;
     }
-    
+
     @Override
-    public Port getPortAt(int px, int py) {
-        int tolerance = 8;  // port 的點擊範圍
-        for (Port port : getAllPorts()) {
-            if (Math.abs(port.getX() - px) <= tolerance && Math.abs(port.getY() - py) <= tolerance) {
-                return port;
-            }
-        }
-        return null;
+    public boolean isInside(int px, int py) {
+        Rectangle b = getBounds();
+        
+        // 1. 取得中心點 (h, k)
+        double h = b.getCenterX();
+        double k = b.getCenterY();
+        
+        // 2. 取得半長軸與半短軸 (rx, ry)
+        double rx = b.width / 2.0;
+        double ry = b.height / 2.0;
+
+        // 防止除以零（寬高為 0 的情況）
+        if (rx <= 0 || ry <= 0) return false;
+
+        // 3. 使用橢圓標準方程式判定： (x-h)^2 / rx^2 + (y-k)^2 / ry^2 <= 1
+        double dx = px - h;
+        double dy = py - k;
+        
+        return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1.0;
     }
     
     @Override
@@ -242,22 +248,6 @@ class OvalObject extends Shape {
     }
     
     @Override
-    public boolean isCompletelyInside(int minX, int maxX, int minY, int maxY) {
-        int x1 = Math.min(this.x1, this.x2);
-        int x2 = Math.max(this.x1, this.x2);
-        int y1 = Math.min(this.y1, this.y2);
-        int y2 = Math.max(this.y1, this.y2);
-        
-        // 檢查椭圆的邊界框是否完全落在選擇區域內
-        return x1 >= minX && x2 <= maxX && y1 >= minY && y2 <= maxY;
-    }
-    
-    @Override
-    public boolean canResize() {
-        return true;  // 基本物件可以調整大小
-    }
-    
-    @Override
     public void draw(Graphics g) {
         Rectangle bounds = getBounds();
         
@@ -271,9 +261,5 @@ class OvalObject extends Shape {
         drawLabelText(g, bounds.x, bounds.y, bounds.width, bounds.height);
         
         if (isSelected) drawPorts(g);
-    }
-    @Override
-    public boolean isInside(int px, int py) {
-        return px >= Math.min(x1, x2) && px <= Math.max(x1, x2) && py >= Math.min(y1, y2) && py <= Math.max(y1, y2);
     }
 }
