@@ -9,16 +9,16 @@ public class Link {
     
     public Link(Shape from, Port fromP, Shape to, Port toP, String type) {
         this.fromShape = from;
-        this.fromPortPosition = fromP.position;
+        this.fromPortPosition = fromP.getPosition();
         this.toShape = to;
-        this.toPortPosition = toP.position;
+        this.toPortPosition = toP.getPosition();
         this.linkType = type;
     }
     
     // 動態取得最新的 from port
     private Port getFromPort() {
         for (Port port : fromShape.getAllPorts()) {
-            if (port.position.equals(fromPortPosition)) {
+            if (port.getPosition().equals(fromPortPosition)) {
                 return port;
             }
         }
@@ -28,7 +28,7 @@ public class Link {
     // 動態取得最新的 to port
     private Port getToPort() {
         for (Port port : toShape.getAllPorts()) {
-            if (port.position.equals(toPortPosition)) {
+            if (port.getPosition().equals(toPortPosition)) {
                 return port;
             }
         }
@@ -50,10 +50,10 @@ public class Link {
         g2d.setStroke(new BasicStroke(2));
         
         // 繪製連接線
-        g2d.drawLine(fromPort.x, fromPort.y, toPort.x, toPort.y);
+        g2d.drawLine(fromPort.getX(), fromPort.getY(), toPort.getX(), toPort.getY());
         
         // 根據類型繪製箭頭
-        drawArrow(g2d, fromPort.x, fromPort.y, toPort.x, toPort.y);
+        drawArrow(g2d, fromPort.getX(), fromPort.getY(), toPort.getX(), toPort.getY());
     }
     
     private void drawArrow(Graphics2D g2d, int x1, int y1, int x2, int y2) {

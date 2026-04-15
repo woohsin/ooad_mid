@@ -79,7 +79,7 @@ public class Canvas extends JPanel {
         }
     }
     
-    public void setPreviewShape(String type, int x1, int y1, int x2, int y2) {
+    void setPreviewShape(String type, int x1, int y1, int x2, int y2) {
         if (type.equals("Rect")) {
             this.previewShape = new RectObject(x1, y1, x2, y2);
         } else {
@@ -87,11 +87,11 @@ public class Canvas extends JPanel {
         }
     }
     
-    public void clearPreviewShape() {
+    void clearPreviewShape() {
         this.previewShape = null;
     }
     
-    public void setPreviewLink(int x1, int y1, int x2, int y2) {
+    void setPreviewLink(int x1, int y1, int x2, int y2) {
         this.previewLinkX1 = x1;
         this.previewLinkY1 = y1;
         this.previewLinkX2 = x2;
@@ -99,11 +99,11 @@ public class Canvas extends JPanel {
         this.showPreviewLink = true;
     }
     
-    public void clearPreviewLink() {
+    void clearPreviewLink() {
         this.showPreviewLink = false;
     }
     
-    public void setPreviewSelectionRect(int x1, int y1, int x2, int y2) {
+    void setPreviewSelectionRect(int x1, int y1, int x2, int y2) {
         this.previewRectX1 = x1;
         this.previewRectY1 = y1;
         this.previewRectX2 = x2;
@@ -111,13 +111,13 @@ public class Canvas extends JPanel {
         this.showPreviewRect = true;
     }
     
-    public void clearPreviewSelectionRect() {
+    void clearPreviewSelectionRect() {
         this.showPreviewRect = false;
     }
     
-    public void addShape(Shape s) { shapes.add(s); }
-    public void addLink(Link l) { links.add(l); }
-    public List<Shape> getShapes() { return shapes; }
+    void addShape(Shape s) { shapes.add(s); }
+    void addLink(Link l) { links.add(l); }
+    List<Shape> getShapes() { return shapes; }
     
     public Shape getSelectedShape() {
         for (Shape s : shapes) {

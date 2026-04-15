@@ -84,7 +84,7 @@ class ConnectionMode extends Mode {
                 endX = startX;
                 endY = startY;
                 isDragging = true;
-                canvas.setPreviewLink(startPort.x, startPort.y, endX, endY);
+                canvas.setPreviewLink(startPort.getX(), startPort.getY(), endX, endY);
                 return;
             }
         }
@@ -98,7 +98,7 @@ class ConnectionMode extends Mode {
         if (isDragging && startPort != null) {
             endX = e.getX();
             endY = e.getY();
-            Canvas.getInstance().setPreviewLink(startPort.x, startPort.y, endX, endY);
+            Canvas.getInstance().setPreviewLink(startPort.getX(), startPort.getY(), endX, endY);
         }
     }
 
@@ -159,7 +159,7 @@ class SelectMode extends Mode {
             Port port = s.getPortAt(e.getX(), e.getY());
             if (port != null && s.canResize()) {  // 檢查物件是否可以調整大小（F.1）
                 resizingShape = s;
-                resizePortPosition = port.position;
+                resizePortPosition = port.getPosition();
                 startX = e.getX();
                 startY = e.getY();
                 endX = startX;

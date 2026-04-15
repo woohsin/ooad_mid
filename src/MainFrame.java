@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainFrame extends JFrame {
+    private MenuController menuController;
+
     public MainFrame() {
         setTitle("Oops UML Editor");
         setSize(1000, 800);
@@ -15,31 +17,34 @@ public class MainFrame extends JFrame {
         getContentPane().add(toolBar, BorderLayout.WEST);
         getContentPane().add(canvas, BorderLayout.CENTER);
         
-        setJMenuBar(createMenuBar());
+        menuController = new MenuController(this);
+        setJMenuBar(menuController.createMenuBar());
     }
 
-    private JMenuBar createMenuBar() {
+    public static void main(String[] args) {
+        new MainFrame().setVisible(true);
+    }
+}
+
+class MenuController {
+    private JFrame parentFrame;
+
+    public MenuController(JFrame parentFrame) {
+        this.parentFrame = parentFrame;
+    }
+
+    public JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu editMenu = new JMenu("Edit");
         
-        JMenuItem group = new JMenuItem("Group"); // Use Case D 
-        group.addActionListener(e -> Canvas.getInstance().groupSelectedShapes());
+        JMenuItem group = new JMenuItem("Group");
+        group.addActionListener(e -> handleGroup());
         
         JMenuItem labelItem = new JMenuItem("Label");
-        labelItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Shape selected = Canvas.getInstance().getSelectedShape();
-                if (selected == null) {
-                    JOptionPane.showMessageDialog(MainFrame.this, "請先選取一個物件。", "錯誤", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                new LabelDialog(MainFrame.this, selected).setVisible(true);
-            }
-        });
+        labelItem.addActionListener(e -> handleLabel());
         
         JMenuItem ungroup = new JMenuItem("Ungroup");
-        ungroup.addActionListener(e -> Canvas.getInstance().ungroupSelectedShape());
+        ungroup.addActionListener(e -> handleUngroup());
         
         editMenu.add(group);
         editMenu.add(ungroup);
@@ -49,8 +54,21 @@ public class MainFrame extends JFrame {
         return menuBar;
     }
 
-    public static void main(String[] args) {
-        new MainFrame().setVisible(true);
+    private void handleGroup() {
+        Canvas.getInstance().groupSelectedShapes();
+    }
+
+    private void handleUngroup() {
+        Canvas.getInstance().ungroupSelectedShape();
+    }
+
+    private void handleLabel() {
+        Shape selected = Canvas.getInstance().getSelectedShape();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(parentFrame, "請先選取一個物件。", "錯誤", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new LabelDialog(parentFrame, selected).setVisible(true);
     }
 }
 

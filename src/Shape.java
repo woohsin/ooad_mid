@@ -16,6 +16,26 @@ public abstract class Shape {
     public abstract boolean isCompletelyInside(int minX, int maxX, int minY, int maxY);  // 檢查是否完全在矩形區域內
     public abstract boolean canResize();  // 是否可以調整大小（composite 物件返回 false）
     
+    // 获取边界矩形
+    protected Rectangle getBounds() {
+        int minX = Math.min(x1, x2);
+        int minY = Math.min(y1, y2);
+        int width = Math.abs(x1 - x2);
+        int height = Math.abs(y1 - y2);
+        return new Rectangle(minX, minY, width, height);
+    }
+    
+    // 绘制标签文本的辅助方法
+    protected void drawLabelText(Graphics g, int minX, int minY, int width, int height) {
+        if (!labelName.isEmpty()) {
+            g.setColor(Color.BLACK);
+            FontMetrics fm = g.getFontMetrics();
+            int textX = minX + (width - fm.stringWidth(labelName)) / 2;
+            int textY = minY + ((height - fm.getHeight()) / 2) + fm.getAscent();
+            g.drawString(labelName, textX, textY);
+        }
+    }
+    
     public void move(int deltaX, int deltaY) {
         this.x1 += deltaX;
         this.y1 += deltaY;
@@ -75,7 +95,7 @@ public abstract class Shape {
         g.setColor(Color.RED);  // 用紅色顯示 ports，便於用戶識別
         // 畫出物件的所有 Port
         for (Port port : getAllPorts()) {
-            g.fillRect(port.x - pw/2, port.y - pw/2, pw, pw);
+            g.fillRect(port.getX() - pw/2, port.getY() - pw/2, pw, pw);
         }
     }
     public void setSelected(boolean b) { this.isSelected = b; }
@@ -88,14 +108,18 @@ public abstract class Shape {
 
 // Port 類，表示一個連接點
 class Port {
-    public int x, y;
-    public String position;  // "TL", "TR", "BL", "BR", "T", "B", "L", "R" 等
+    private int x, y;
+    private String position;  // "TL", "TR", "BL", "BR", "T", "B", "L", "R" 等
     
     public Port(int x, int y, String position) {
         this.x = x;
         this.y = y;
         this.position = position;
     }
+    
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public String getPosition() { return position; }
 }
 
 class RectObject extends Shape {
@@ -114,7 +138,7 @@ class RectObject extends Shape {
     public Port getPortAt(int px, int py) {
         int tolerance = 8;  // port 的點擊範圍
         for (Port port : getAllPorts()) {
-            if (Math.abs(port.x - px) <= tolerance && Math.abs(port.y - py) <= tolerance) {
+            if (Math.abs(port.getX() - px) <= tolerance && Math.abs(port.getY() - py) <= tolerance) {
                 return port;
             }
         }
@@ -124,22 +148,19 @@ class RectObject extends Shape {
     @Override
     public List<Port> getAllPorts() {
         List<Port> ports = new ArrayList<>();
-        int minX = Math.min(x1, x2);
-        int maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2);
-        int maxY = Math.max(y1, y2);
+        Rectangle bounds = getBounds();
         
         // 四個角
-        ports.add(new Port(minX, minY, "TL"));  // Top-Left
-        ports.add(new Port(maxX, minY, "TR"));  // Top-Right
-        ports.add(new Port(minX, maxY, "BL"));  // Bottom-Left
-        ports.add(new Port(maxX, maxY, "BR"));  // Bottom-Right
+        ports.add(new Port(bounds.x, bounds.y, "TL"));  // Top-Left
+        ports.add(new Port(bounds.x + bounds.width, bounds.y, "TR"));  // Top-Right
+        ports.add(new Port(bounds.x, bounds.y + bounds.height, "BL"));  // Bottom-Left
+        ports.add(new Port(bounds.x + bounds.width, bounds.y + bounds.height, "BR"));  // Bottom-Right
         
         // 四條邊的中點
-        ports.add(new Port((minX + maxX) / 2, minY, "T"));   // Top
-        ports.add(new Port((minX + maxX) / 2, maxY, "B"));   // Bottom
-        ports.add(new Port(minX, (minY + maxY) / 2, "L"));   // Left
-        ports.add(new Port(maxX, (minY + maxY) / 2, "R"));   // Right
+        ports.add(new Port(bounds.x + bounds.width / 2, bounds.y, "T"));   // Top
+        ports.add(new Port(bounds.x + bounds.width / 2, bounds.y + bounds.height, "B"));   // Bottom
+        ports.add(new Port(bounds.x, bounds.y + bounds.height / 2, "L"));   // Left
+        ports.add(new Port(bounds.x + bounds.width, bounds.y + bounds.height / 2, "R"));   // Right
         
         return ports;
     }
@@ -162,25 +183,16 @@ class RectObject extends Shape {
     
     @Override
     public void draw(Graphics g) {
-        int minX = Math.min(x1, x2);
-        int minY = Math.min(y1, y2);
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
+        Rectangle bounds = getBounds();
         
         // 用 labelColor 填充整個矩形
         g.setColor(labelColor);
-        g.fillRect(minX, minY, width, height);
+        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         g.setColor(Color.BLACK);
-        g.drawRect(minX, minY, width, height);
+        g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
         
         // 繪製名稱，置中顯示
-        if (!labelName.isEmpty()) {
-            g.setColor(Color.BLACK);
-            FontMetrics fm = g.getFontMetrics();
-            int textX = minX + (width - fm.stringWidth(labelName)) / 2;
-            int textY = minY + ((height - fm.getHeight()) / 2) + fm.getAscent();
-            g.drawString(labelName, textX, textY);
-        }
+        drawLabelText(g, bounds.x, bounds.y, bounds.width, bounds.height);
         
         if (isSelected) drawPorts(g);
     }
@@ -206,7 +218,7 @@ class OvalObject extends Shape {
     public Port getPortAt(int px, int py) {
         int tolerance = 8;  // port 的點擊範圍
         for (Port port : getAllPorts()) {
-            if (Math.abs(port.x - px) <= tolerance && Math.abs(port.y - py) <= tolerance) {
+            if (Math.abs(port.getX() - px) <= tolerance && Math.abs(port.getY() - py) <= tolerance) {
                 return port;
             }
         }
@@ -216,18 +228,15 @@ class OvalObject extends Shape {
     @Override
     public List<Port> getAllPorts() {
         List<Port> ports = new ArrayList<>();
-        int minX = Math.min(x1, x2);
-        int maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2);
-        int maxY = Math.max(y1, y2);
-        int centerX = (minX + maxX) / 2;
-        int centerY = (minY + maxY) / 2;
+        Rectangle bounds = getBounds();
+        int centerX = bounds.x + bounds.width / 2;
+        int centerY = bounds.y + bounds.height / 2;
         
         // 四個主要方向的 ports
-        ports.add(new Port(centerX, minY, "T"));       // Top
-        ports.add(new Port(centerX, maxY, "B"));       // Bottom
-        ports.add(new Port(minX, centerY, "L"));       // Left
-        ports.add(new Port(maxX, centerY, "R"));       // Right
+        ports.add(new Port(centerX, bounds.y, "T"));       // Top
+        ports.add(new Port(centerX, bounds.y + bounds.height, "B"));       // Bottom
+        ports.add(new Port(bounds.x, centerY, "L"));       // Left
+        ports.add(new Port(bounds.x + bounds.width, centerY, "R"));       // Right
         
         return ports;
     }
@@ -250,25 +259,16 @@ class OvalObject extends Shape {
     
     @Override
     public void draw(Graphics g) {
-        int minX = Math.min(x1, x2);
-        int minY = Math.min(y1, y2);
-        int width = Math.abs(x1 - x2);
-        int height = Math.abs(y1 - y2);
+        Rectangle bounds = getBounds();
         
         // 用 labelColor 填充整個橢圓
         g.setColor(labelColor);
-        g.fillOval(minX, minY, width, height);
+        g.fillOval(bounds.x, bounds.y, bounds.width, bounds.height);
         g.setColor(Color.BLACK);
-        g.drawOval(minX, minY, width, height);
+        g.drawOval(bounds.x, bounds.y, bounds.width, bounds.height);
         
         // 繪製名稱，置中顯示
-        if (!labelName.isEmpty()) {
-            g.setColor(Color.BLACK);
-            FontMetrics fm = g.getFontMetrics();
-            int textX = minX + (width - fm.stringWidth(labelName)) / 2;
-            int textY = minY + ((height - fm.getHeight()) / 2) + fm.getAscent();
-            g.drawString(labelName, textX, textY);
-        }
+        drawLabelText(g, bounds.x, bounds.y, bounds.width, bounds.height);
         
         if (isSelected) drawPorts(g);
     }
