@@ -28,15 +28,11 @@ public class Canvas extends JPanel {
     public Canvas() {
         setBackground(Color.WHITE);
         MouseAdapter ma = new MouseAdapter() {
-            @Override
             public void mousePressed(MouseEvent e) { currentMode.mousePressed(e); repaint(); }
-            @Override
             public void mouseReleased(MouseEvent e) { currentMode.mouseReleased(e); repaint(); }
-            @Override
             public void mouseDragged(MouseEvent e) { currentMode.mouseDragged(e); repaint(); }
-            @Override
             public void mouseMoved(MouseEvent e) { 
-                // 檢查鼠標是否在某個物件上（Use Case F - Case 1-2）
+                // 檢查鼠標是否在某個物件上（索引較大的物件會疊在索引較小的物件「上方」）
                 Shape prevHovered = hoveredShape;
                 hoveredShape = null;
                 for (int i = shapes.size() - 1; i >= 0; i--) {
@@ -60,15 +56,11 @@ public class Canvas extends JPanel {
     }
 
     public void setMode(Mode m) { 
+        // 在切換前，先記住當前模式的名稱
+        this.previousModeName = this.currentMode.getType(); 
         this.previousMode = this.currentMode;
-        // 記錄之前的模式名稱
-        if (this.currentMode instanceof SelectMode) {
-            this.previousModeName = "Select";
-        } else if (this.currentMode instanceof CreateObjectMode) {
-            this.previousModeName = ((CreateObjectMode) this.currentMode).getType();
-        } else if (this.currentMode instanceof ConnectionMode) {
-            this.previousModeName = ((ConnectionMode) this.currentMode).getLinkType();
-        }
+        
+        // 切換到新模式
         this.currentMode = m; 
     }
     

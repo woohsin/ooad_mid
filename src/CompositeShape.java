@@ -95,7 +95,6 @@ public class CompositeShape extends Shape {
         return children;
     }
 
-    @Override
     public void setSelected(boolean b) {
         super.setSelected(b); // 設定群組本身的狀態
         // 同步設定所有子物件的狀態

@@ -1,6 +1,7 @@
 import java.awt.event.MouseEvent;
 
 public abstract class Mode {
+    public abstract String getType();
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}
     public void mouseDragged(MouseEvent e) {}
@@ -13,7 +14,8 @@ class CreateObjectMode extends Mode {
     private boolean isDragging = false;
     
     public CreateObjectMode(String t) { this.type = t; }
-    
+
+    @Override
     public String getType() { return this.type; }
 
     @Override
@@ -67,7 +69,8 @@ class ConnectionMode extends Mode {
         this.linkType = type;
     }
     
-    public String getLinkType() { return this.linkType; }
+    @Override
+    public String getType() { return this.linkType; }
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -148,6 +151,9 @@ class SelectMode extends Mode {
     private Shape resizingShape = null;  // 正在調整大小的物件（Use Case F）
     private String resizePortPosition = null;  // 被拖動的 port 位置（Use Case F）
     private int lastX, lastY;  // 上次的座標，用於計算移動距離
+
+    @Override
+    public String getType() { return "Select"; }
     
     @Override
     public void mousePressed(MouseEvent e) {
