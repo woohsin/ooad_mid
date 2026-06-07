@@ -65,43 +65,33 @@ public abstract class Shape {
         this.y2 += deltaY;
     }
     
-    // 調整大小方法（根據 port 位置計算新的邊界）
-    public void resize(String portPosition, int newX, int newY) {
-        if (!canResize()) return;
+    public void resize(Port activePort, int newX, int newY) {
+        if (!canResize() || activePort == null) return;
         
-        int minSize = MIN_SIZE;
+        String pos = activePort.getPosition();
         
-        // 根據 port 位置更新對應的邊界座標
-        // 允許交叉反向拖曳（F.2）
-        if (portPosition.contains("T")) {
-            y1 = newY;
-        }
-        if (portPosition.contains("B")) {
-            y2 = newY;
-        }
-        if (portPosition.contains("L")) {
-            x1 = newX;
-        }
-        if (portPosition.contains("R")) {
-            x2 = newX;
-        }
+        if (pos.contains("T")) { y1 = newY; }
+        if (pos.contains("B")) { y2 = newY; }
+        if (pos.contains("L")) { x1 = newX; }
+        if (pos.contains("R")) { x2 = newX; }
+    }
+
+    // 2. 結束拖曳（放開滑鼠）：此時才做唯一一次的基準座標重新計算與轉換
+    public void finalizeResize() {
+        // 確保寬高不小於最小尺寸限制（Alternatives F.3）
+        int width = Math.abs(x2 - x1);
+        int height = Math.abs(y2 - y1);
+        if (width < MIN_SIZE) { width = MIN_SIZE; }
+        if (height < MIN_SIZE) { height = MIN_SIZE; }
+
+        // 自動動態轉換物件的基準座標，讓 (x1, y1) 永遠回到左上角，(x2, y2) 永遠在右下角
+        int realX1 = Math.min(x1, x2);
+        int realY1 = Math.min(y1, y2);
         
-        // 強制最小尺寸限制（F.3）
-        if (Math.abs(x2 - x1) < minSize) {
-            if (x2 < x1) {
-                x2 = x1 - minSize;
-            } else {
-                x2 = x1 + minSize;
-            }
-        }
-        
-        if (Math.abs(y2 - y1) < minSize) {
-            if (y2 < y1) {
-                y2 = y1 - minSize;
-            } else {
-                y2 = y1 + minSize;
-            }
-        }
+        this.x1 = realX1;
+        this.y1 = realY1;
+        this.x2 = realX1 + width;
+        this.y2 = realY1 + height;
     }
     
     public void drawPreview(Graphics g) {
@@ -125,6 +115,11 @@ public abstract class Shape {
     public void setLabelName(String name) { this.labelName = name; }
     public Color getLabelColor() { return labelColor; }
     public void setLabelColor(Color color) { this.labelColor = color; }
+    // 3. 繪製時：永遠以起點與終點的「絕對差數值」來繪製新物件（Alternatives F.2）
+    public int getX() { return Math.min(x1, x2); }
+    public int getY() { return Math.min(y1, y2); }
+    public int getWidth() { return Math.abs(x2 - x1); }
+    public int getHeight() { return Math.abs(y2 - y1); }
 }
 
 // Port 類，表示一個連接點

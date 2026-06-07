@@ -145,7 +145,7 @@ class SelectMode extends Mode {
     private boolean isSelectingArea = false;  // 標記是否在空白區域進行拖曳選擇
     private Shape movingShape = null;  // 正在移動的物件（Use Case D）
     private Shape resizingShape = null;  // 正在調整大小的物件（Use Case F）
-    private String resizePortPosition = null;  // 被拖動的 port 位置（Use Case F）
+    private Port resizingPort = null;  // 被拖動的 port 位置（Use Case F）
     private int lastX, lastY;  // 上次的座標，用於計算移動距離
 
     @Override
@@ -159,15 +159,10 @@ class SelectMode extends Mode {
         for (int i = canvas.getShapes().size() - 1; i >= 0; i--) {
             Shape s = canvas.getShapes().get(i);
             Port port = s.getPortAt(e.getX(), e.getY());
-            if (port != null && s.canResize()) {  // 檢查物件是否可以調整大小（F.1）
+            if (port != null && s.canResize()) {
                 resizingShape = s;
-                resizePortPosition = port.getPosition();
-                startX = e.getX();
-                startY = e.getY();
-                endX = startX;
-                endY = startY;
+                resizingPort = port; // 儲存 Port 物件
                 isDragging = true;
-                isSelectingArea = false;
                 return;
             }
         }
@@ -229,12 +224,17 @@ class SelectMode extends Mode {
     
     @Override
     public void mouseDragged(MouseEvent e) {
+        if (isDragging && resizingShape != null) {
+            // 拖曳時，純粹讓物件根據當初抓的 Port 點去衍生座標，完全不會閃爍
+            resizingShape.resize(resizingPort, e.getX(), e.getY());
+            Canvas.getInstance().repaint();
+        }
         if (isDragging) {
             if (resizingShape != null) {
                 // Use Case F: 調整物件大小
                 endX = e.getX();
                 endY = e.getY();
-                resizingShape.resize(resizePortPosition, endX, endY);
+                resizingShape.resize(resizingPort, endX, endY);
                 Canvas.getInstance().repaint();
             } else if (movingShape != null && !isSelectingArea) {
                 // Use Case D: 移動物件
@@ -262,13 +262,10 @@ class SelectMode extends Mode {
     public void mouseReleased(MouseEvent e) {
         if (isDragging) {
             if (resizingShape != null) {
-                // Use Case F: 完成物件調整
-                endX = e.getX();
-                endY = e.getY();
-                resizingShape.resize(resizePortPosition, endX, endY);
+                // 【核心關鍵】：滑鼠放開了，這時交叉反向拖曳完成，一次性校正基準座標與最小尺寸
+                resizingShape.finalizeResize();
                 resizingShape = null;
-                resizePortPosition = null;
-                Canvas.getInstance().repaint();
+                resizingPort = null;
             } else if (movingShape != null && !isSelectingArea) {
                 // Use Case D: 完成物件移動
                 movingShape = null;
