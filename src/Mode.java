@@ -192,12 +192,20 @@ class SelectMode extends Mode {
                 // Ctrl + 點擊：切換選取狀態
                 clickedShape.setSelected(!clickedShape.isSelected);
             } else {
-                // 普通點擊：取消其他選取，選取該物件
-                for (Shape s : canvas.getShapes()) {
-                    s.setSelected(false);
+                // 【優化點】：如果點擊的物件「已經被選取」，則不應該清空其他人的選取，以便集體移動
+                if (!clickedShape.isSelected) {
+                    // 普通點擊「未選取」的物件：取消其他選取，單選這一個
+                    for (Shape s : canvas.getShapes()) {
+                        s.setSelected(false);
+                    }
+                    clickedShape.setSelected(true);
                 }
-                clickedShape.setSelected(true);
             }
+            // 只有當前明確被點擊到的這一個物件會被提到最上層
+            if (canvas.getShapes().remove(clickedShape)) {
+                canvas.getShapes().add(clickedShape);
+            }
+
             movingShape = clickedShape;
             lastX = e.getX();
             lastY = e.getY();
